@@ -330,4 +330,79 @@ function start(){
                 )
     }
 
-   
+   function updateEmployee(){
+    connection.query(
+        "SELECT * FROM employee",
+        function (err, results){
+            if (err) throw err;
+            inquirer
+            .prompt([
+                {
+                    name:"choices",
+                    type:"rawlist",
+                    choices: function (){
+                        let choiceArr =[];
+                        for(i=0; i< results.length; i++)
+                        {
+                            choiceArr.push(results[i].last_name);
+
+                        }
+                        return choiceArr;
+
+                    },
+                    message:"Select employee to update"
+                }
+            ]).then (function(answer){
+                const saveName= answer.choice;
+                connection.query("SELECT * FROM employee",
+                function (err,results){
+                    if (err) throw err;
+                    inquirer
+                    .prompt ([
+                        {
+                            name: "role",
+                            type:"rawlist",
+                            choices: function(){
+                            var choiceArr = [];
+                            for (i=0; i< results.length; i++){
+                                choiceArr.push(results[i].role_id)
+                            }
+                            return choiceArr;
+                            },
+                            message: "Select title"
+                        },
+                        {
+                            name:"manager",
+                            type:"number",
+                            validate: function (value){
+                                if(isNAN(value) === false){
+                                    return true;
+
+                                }
+                                return false;
+
+                            },
+                            message: "Please enter new manager ID",
+                            default: "1"   
+                        }
+                    ]).then (function (answer){
+                        console.log(answer);
+                        console.log(saveName);
+                        connection.query("UPDATE employee SET ? WHERE last_name = ?",
+                        [
+                            {
+                                role_id: answer.role,
+                                manager_id: answer.manager,
+
+                            }, saveName
+
+                        ],
+                        ),
+                        console.log ("Employee update");
+                        start();
+                    });
+                })
+
+            })
+        })
+   }
